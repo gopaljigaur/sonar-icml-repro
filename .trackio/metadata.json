@@ -1,0 +1,13 @@
+{
+  "space_id": null,
+  "emoji": "🎯",
+  "created_at": "2026-07-20T20:25:27+00:00",
+  "last_page": "claim-5-js-divergence-loss-eq-8-aligns-low-high-freq-embeddings-for-genuine-separates-for-fake",
+  "tags": [
+    "icml2026-repro",
+    "paper-Jr7k590VxW"
+  ],
+  "paper": {
+    "arxiv_id": "2511.21325"
+  }
+}
