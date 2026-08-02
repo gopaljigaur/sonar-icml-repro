@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<!--
+  Hand-built in the spirit of Chenruishuo/posterly (self-contained embed,
+  real hotspot navigation to logbook page slugs). The upstream posterly
+  release (github.com/Chenruishuo/posterly, cloned locally) ships the
+  print-poster gate pipeline (measure/style/polish/preflight) but does NOT
+  yet ship a `poster_embed.html` generator or `data-logbook-target`/
+  logbook.json hotspot machinery described in the ICML-2026-agent-repro
+  README -- verified by grep across the full repo, no matches. This file
+  is authored directly to satisfy the same intent: a single self-contained
+  HTML figure (no external assets, no data-URI raster needed since it is
+  pure inline SVG+HTML) with clickable regions that route to the real
+  page slugs created by scaffold_icml_logbook.py.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SONAR reproduction poster</title>
+<style>
+  :root {
+    --accent: #0F6070; --accent-deep: #0A4650; --accent-light: #E6F1F2;
+    --emph: #A2521C; --emph-soft: #F5E6D8; --ink: #14314A; --muted: #5B6B78;
+    --bg: #FFFFFF; --card: #F7FAFA; --ok: #1E7A46; --toy: #B8860B; --struct: #2C5AA0;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+  .poster { width: 1200px; padding: 28px 32px 20px; }
+  h1 { font-size: 22px; margin: 0 0 2px; color: var(--accent-deep); }
+  .sub { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+  .grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 16px; }
+  .card { background: var(--card); border: 1px solid #DCE4E6; border-radius: 8px; padding: 12px 14px; position: relative; }
+  .card h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--accent-deep); margin: 0 0 8px; }
+  a.hotspot { text-decoration: none; color: inherit; display: block; }
+  a.hotspot:hover .card { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-light); }
+  .pill { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; margin-left: 6px; }
+  .pill.ok { background: #E3F2E9; color: var(--ok); }
+  .pill.toy { background: #FBF0D9; color: var(--toy); }
+  .pill.struct { background: #E3ECFA; color: var(--struct); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td, th { padding: 3px 4px; text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  tr.hl td { font-weight: 700; color: var(--accent-deep); }
+  .archrow { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .box { border: 1.5px solid var(--accent); border-radius: 6px; padding: 6px 8px; font-size: 11px; text-align: center; background: #fff; }
+  .arrow { font-size: 16px; color: var(--muted); }
+  .eq { font-family: "Courier New", monospace; font-size: 11.5px; background: #fff; border: 1px dashed #C8D3D6; border-radius: 5px; padding: 6px 8px; margin-top: 6px; }
+  .footer { margin-top: 10px; font-size: 10px; color: var(--muted); text-align: right; }
+  .open { font-size: 10px; color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="poster">
+  <h1>SONAR: Spectral-Contrastive Audio Residuals for Generalizable Deepfake Detection</h1>
+  <div class="sub">Independent reproduction &middot; arXiv:2511.21325 &middot; no official code released at time of writing</div>
+
+  <div class="grid">
+    <div>
+      <a class="hotspot" href="#/claim-1-table-1-eer-1-57-df-1-55-la-full-training" data-logbook-target="claim-1-table-1-eer-1-57-df-1-55-la-full-training">
+        <div class="card">
+          <h2>Claim 1 &middot; Table 1 EER <span class="pill toy">toy</span> <span class="open">Open details &#8599;</span></h2>
+          <table>
+            <tr><th>Set</th><th>Paper (SONAR-Full)</th><th>Toy repro</th></tr>
+            <tr><td>ASVspoof21 DF</td><td>1.57%</td><td id="df-toy">see page</td></tr>
+            <tr class="hl"><td>ASVspoof21 LA</td><td>1.55%</td><td id="la-toy">see page</td></tr>
+          </table>
+        </div>
+      </a>
+
+      <a class="hotspot" href="#/claim-2-itw-eer-sonar-full-6-00-vs-xlsr-aasist-10-46" data-logbook-target="claim-2-itw-eer-sonar-full-6-00-vs-xlsr-aasist-10-46">
+        <div class="card" style="margin-top:14px;">
+          <h2>Claim 2 &middot; In-The-Wild <span class="pill toy">toy proxy</span> <span class="open">Open details &#8599;</span></h2>
+          <table>
+            <tr><th>Model</th><th>Paper EER</th></tr>
+            <tr><td>SONAR-Full</td><td>6.00%</td></tr>
+            <tr><td>XLSR+AASIST baseline</td><td>10.46%</td></tr>
+          </table>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">Real ITW corpus has no usable public HF mirror &mdash; ASVspoof21-DF eval used as cross-domain proxy.</div>
+        </div>
+      </a>
+
+      <a class="hotspot" href="#/claim-3-convergence-sonar-full-in-12-epochs-sonar-finetune-in-4-6-vs-100-for-baselines" data-logbook-target="claim-3-convergence-sonar-full-in-12-epochs-sonar-finetune-in-4-6-vs-100-for-baselines">
+        <div class="card" style="margin-top:14px;">
+          <h2>Claim 3 &middot; Convergence speed <span class="pill toy">toy</span> <span class="open">Open details &#8599;</span></h2>
+          <div style="font-size:11px;">SONAR-Full (dual-path + Eq.8 loss) vs. single-path baseline, same toy data/epochs &mdash; relative epochs-to-plateau, not absolute paper epoch counts.</div>
+        </div>
+      </a>
+    </div>
+
+    <div>
+      <a class="hotspot" href="#/claim-4-dual-path-architecture-cfe-xlsr-nfe-srm-filters-xlsr-cross-attention-fusion-aasist-head" data-logbook-target="claim-4-dual-path-architecture-cfe-xlsr-nfe-srm-filters-xlsr-cross-attention-fusion-aasist-head">
+        <div class="card">
+          <h2>Claim 4 &middot; Architecture <span class="pill ok">reproduced (structural)</span> <span class="open">Open details &#8599;</span></h2>
+          <div class="archrow">
+            <div class="box">Low band<br>XLSR (CFE)</div>
+            <div class="arrow">&#8594;</div>
+            <div class="box">Cross-<br>Attention</div>
+            <div class="arrow">&#8594;</div>
+            <div class="box">AASIST-<br>inspired head</div>
+          </div>
+          <div class="archrow">
+            <div class="box">High band<br>SRM &rarr; XLSR (NFE)</div>
+            <div class="arrow">&#8593;</div>
+            <div class="box" style="visibility:hidden;">.</div>
+            <div class="arrow" style="visibility:hidden;">.</div>
+            <div class="box" style="visibility:hidden;">.</div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">SRM: M=30 filters, center tap fixed &minus;1, remaining taps zero-sum-projected after every optimizer step. Verified by unit test.</div>
+        </div>
+      </a>
+
+      <a class="hotspot" href="#/claim-5-js-divergence-loss-eq-8-aligns-low-high-freq-embeddings-for-genuine-separates-for-fake" data-logbook-target="claim-5-js-divergence-loss-eq-8-aligns-low-high-freq-embeddings-for-genuine-separates-for-fake">
+        <div class="card" style="margin-top:14px;">
+          <h2>Claim 5 &middot; Eq. 8 JS-divergence loss <span class="pill ok">reproduced (mechanism)</span> <span class="open">Open details &#8599;</span></h2>
+          <div class="eq">L_JS(x,y) = y&middot;JS(z_c,z_n) + (1&minus;y)&middot;(1&minus;JS(z_c,z_n))</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;">y=1 genuine &rarr; loss minimized as JS&rarr;0 (align). y=0 spoof &rarr; loss minimized as JS&rarr;1 (separate). Confirmed by direct unit test on synthetic embeddings. Novelty ("first use") claim: unverifiable by search, left open.</div>
+        </div>
+      </a>
+
+      <a class="hotspot" href="#/conclusion" data-logbook-target="conclusion">
+        <div class="card" style="margin-top:14px;">
+          <h2>Reproduction bundle <span class="open">Open details &#8599;</span></h2>
+          <div style="font-size:11px;">Code: github.com/gopaljigaur/sonar-icml-repro &middot; full logs, configs, and toy-run outputs bundled below.</div>
+        </div>
+      </a>
+    </div>
+  </div>
+  <div class="footer">Executive summary has full scope &amp; cost table. Hover any card to navigate.</div>
+</div>
+</body>
+</html>

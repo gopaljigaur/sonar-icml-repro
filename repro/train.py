@@ -39,7 +39,7 @@ def run_epoch_eval(model, loader, device):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--train-dataset", default="LanceaKing/asvspoof2019")
+    ap.add_argument("--train-dataset", default="Bisher/ASVspoof_2019_LA")
     ap.add_argument("--train-split", default="train")
     ap.add_argument("--eval-dataset", action="append", required=True,
                      help="name=hf_dataset_id[:split], repeatable")

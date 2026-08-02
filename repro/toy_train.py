@@ -1,25 +1,3 @@
-# Claim 3: Convergence: SONAR-Full in 12 epochs, SONAR-Finetune in 4-6, vs ~100 for baselines
-
-
----
-<!-- trackio-cell
-{"type": "markdown", "id": "cell_74d2469c06a2", "created_at": "2026-07-20T20:25:27+00:00", "title": "Claim 3: Convergence: SONAR-Full in 12 epochs, SONAR-Finetune in 4-6, vs ~100 for baselines"}
--->
-Document setup, runs, and results for **Claim 3: Convergence: SONAR-Full in 12 epochs, SONAR-Finetune in 4-6, vs ~100 for baselines**.
-
-
----
-<!-- trackio-cell
-{"type": "code", "id": "cell_97785db1215d", "created_at": "2026-08-02T14:57:39+00:00", "title": "Run: python3 toy_train.py (exit 0)", "command": ["python3", "repro/toy_train.py"], "exit_code": 0, "duration_s": 191.492}
--->
-````bash
-$ python3 repro/toy_train.py
-````
-
-exit 0 · 191.5s
-
-
-````python title=toy_train.py
 """CPU-only toy run on the synthetic LF/HF-coherence proxy task (see
 sonar/synthetic.py docstring for why: real ASVspoof downloads and HF Jobs
 GPU access were both unavailable in this environment).
@@ -112,44 +90,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-````
-
-
-````output
-=== SONAR-Full ===
-[SONAR-Full] epoch=1 loss=1.2509 eer=46.87% time=5.85s
-[SONAR-Full] epoch=2 loss=1.2265 eer=46.87% time=6.37s
-[SONAR-Full] epoch=3 loss=1.2136 eer=46.87% time=6.26s
-[SONAR-Full] epoch=4 loss=1.2088 eer=51.56% time=6.30s
-[SONAR-Full] epoch=5 loss=1.2117 eer=46.87% time=6.68s
-[SONAR-Full] epoch=6 loss=1.2096 eer=46.87% time=7.49s
-[SONAR-Full] epoch=7 loss=1.2113 eer=48.44% time=7.41s
-[SONAR-Full] epoch=8 loss=1.2101 eer=56.26% time=7.13s
-[SONAR-Full] epoch=9 loss=1.2088 eer=51.56% time=7.26s
-[SONAR-Full] epoch=10 loss=1.2088 eer=48.44% time=8.09s
-[SONAR-Full] epoch=11 loss=1.2086 eer=46.87% time=7.45s
-[SONAR-Full] epoch=12 loss=1.2116 eer=51.56% time=8.64s
-[SONAR-Full] epoch=13 loss=1.2121 eer=48.44% time=8.54s
-[SONAR-Full] epoch=14 loss=1.2110 eer=46.87% time=8.03s
-[SONAR-Full] epoch=15 loss=1.2160 eer=48.44% time=9.41s
-=== baseline-nofusion ===
-[baseline-nofusion] epoch=1 loss=0.6985 eer=62.51% time=4.90s
-[baseline-nofusion] epoch=2 loss=0.6927 eer=40.62% time=4.63s
-[baseline-nofusion] epoch=3 loss=0.6937 eer=46.87% time=4.73s
-[baseline-nofusion] epoch=4 loss=0.6926 eer=43.74% time=4.44s
-[baseline-nofusion] epoch=5 loss=0.6934 eer=46.87% time=4.46s
-[baseline-nofusion] epoch=6 loss=0.6932 eer=43.74% time=4.60s
-[baseline-nofusion] epoch=7 loss=0.6923 eer=48.44% time=4.05s
-[baseline-nofusion] epoch=8 loss=0.6946 eer=53.13% time=3.88s
-[baseline-nofusion] epoch=9 loss=0.6926 eer=50.00% time=4.29s
-[baseline-nofusion] epoch=10 loss=0.6928 eer=43.74% time=4.33s
-[baseline-nofusion] epoch=11 loss=0.6927 eer=54.69% time=5.90s
-[baseline-nofusion] epoch=12 loss=0.6948 eer=53.13% time=6.25s
-[baseline-nofusion] epoch=13 loss=0.6918 eer=45.31% time=5.66s
-[baseline-nofusion] epoch=14 loss=0.6933 eer=50.00% time=5.16s
-[baseline-nofusion] epoch=15 loss=0.6918 eer=48.44% time=5.53s
-RESULT variant=SONAR-Full final_eer=48.44% plateau_epoch=7
-RESULT variant=baseline-nofusion final_eer=48.44% plateau_epoch=7
-
-````

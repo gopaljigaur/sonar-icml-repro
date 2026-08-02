@@ -91,27 +91,30 @@ class TinyEncoder(nn.Module):
     via `build_encoder(use_real_xlsr=True)`.
     """
 
-    def __init__(self, out_dim: int = 1024, hop: int = 320):
+    def __init__(self, out_dim: int = 1024, n_fft: int = 512, hop: int = 160):
         super().__init__()
+        self.n_fft = n_fft
         self.hop = hop
+        n_bins = n_fft // 2 + 1
         self.proj = nn.Sequential(
-            nn.Conv1d(1, 64, kernel_size=hop, stride=hop),
+            nn.Linear(n_bins, 256),
             nn.GELU(),
-            nn.Conv1d(64, out_dim, kernel_size=3, padding=1),
+            nn.Linear(256, out_dim),
         )
 
+    def _spectrogram(self, wav: torch.Tensor) -> torch.Tensor:
+        window = torch.hann_window(self.n_fft, device=wav.device)
+        spec = torch.stft(wav, n_fft=self.n_fft, hop_length=self.hop, window=window,
+                           return_complex=True, center=True)  # (B, n_bins, F)
+        mag = torch.log1p(spec.abs())
+        return mag.transpose(1, 2)  # (B, F, n_bins)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # x: (B, T) or (B, M, T) -> flatten channel dim into batch, then restore
+        # x: (B, T) or (B, M, T) -> average filter-bank dim before the STFT frontend
         if x.dim() == 3:
-            b, m, t = x.shape
-            x = x.reshape(b * m, 1, t)
-            out = self.proj(x)  # (B*M, D, F)
-            out = out.transpose(1, 2)  # (B*M, F, D)
-            f, d = out.shape[1], out.shape[2]
-            return out.reshape(b, m, f, d).mean(dim=1)  # collapse M filters -> (B, F, D)
-        x = x.unsqueeze(1)
-        out = self.proj(x).transpose(1, 2)  # (B, F, D)
-        return out
+            x = x.mean(dim=1)
+        mag = self._spectrogram(x)  # (B, F, n_bins)
+        return self.proj(mag)  # (B, F, out_dim)
 
 
 def build_encoder(use_real_xlsr: bool, dim: int = 1024, model_name: str = "facebook/wav2vec2-large-xlsr-53"):

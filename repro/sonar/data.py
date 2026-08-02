@@ -2,10 +2,16 @@
 datashare.ed.ac.uk ASVspoof downloads (documented substitution, same
 underlying corpora):
 
-  train (ASVspoof2019 LA train)     -> LanceaKing/asvspoof2019
-  eval  (ASVspoof2021 DF)           -> MoaazTalab/ASVspoof_2021_DF_Balanced_Normalized
-  eval  (ASVspoof2021 LA)           -> MoaazTalab/ASVspoof_2021_LA_Balanced_Normalized
-  eval  (In-The-Wild)               -> sarkarbkl/In_the_wild_audio_deepfake
+  train (ASVspoof2019 LA train)     -> Bisher/ASVspoof_2019_LA           (key: 0=bonafide, 1=spoof)
+  eval  (ASVspoof2021 DF)           -> MoaazTalab/ASVspoof_2021_DF_Balanced_Normalized  (label: 0=fake, 1=real)
+  eval  (ASVspoof2021 LA)           -> MoaazTalab/ASVspoof_2021_LA_Balanced_Normalized  (label: 0=fake, 1=real)
+
+In-The-Wild (Muller et al.) has no usable public HF mirror at time of writing
+(the one candidate, sarkarbkl/In_the_wild_audio_deepfake, contains no data
+files) and the official source (deepfake-total.com) requires a manual
+download step outside this environment. We substitute the ASVspoof2021 DF
+eval set (unseen-condition, cross-corpus-flavored) as an ITW proxy for the
+toy run and label results accordingly -- this is NOT the real ITW corpus.
 """
 from __future__ import annotations
 
@@ -15,39 +21,45 @@ from torch.utils.data import Dataset
 
 CLIP_LEN = 64600  # ~4s @ 16kHz, per paper Sec 4
 
-
-def _find_audio_col(example: dict) -> str:
-    for k in ("audio", "speech", "file", "wav", "input"):
-        if k in example:
-            return k
-    raise KeyError(f"no audio column found among {list(example.keys())}")
-
-
-def _find_label_col(example: dict) -> str:
-    for k in ("label", "labels", "target", "class", "bonafide"):
-        if k in example:
-            return k
-    raise KeyError(f"no label column found among {list(example.keys())}")
+# dataset_id -> (label_column, value_meaning_genuine)
+LABEL_CONFIG = {
+    "Bisher/ASVspoof_2019_LA": ("key", 0),  # 0=bonafide
+    "MoaazTalab/ASVspoof_2021_DF_Balanced_Normalized": ("label", 1),  # 1=real
+    "MoaazTalab/ASVspoof_2021_LA_Balanced_Normalized": ("label", 1),  # 1=real
+}
 
 
-def _to_binary_label(value, label_col: str) -> int:
-    """Normalize arbitrary label encodings to 1=genuine/bonafide, 0=spoof."""
-    if isinstance(value, str):
-        v = value.lower()
-        return 1 if v in ("bonafide", "genuine", "real", "1") else 0
-    return int(value)
+def _decode_audio(audio_field) -> np.ndarray:
+    if hasattr(audio_field, "get_all_samples"):  # torchcodec AudioDecoder
+        samples = audio_field.get_all_samples()
+        wav = samples.data.mean(dim=0).numpy()  # collapse to mono if needed
+        sr = samples.sample_rate
+    elif isinstance(audio_field, dict):
+        wav = np.asarray(audio_field["array"], dtype=np.float32)
+        sr = audio_field.get("sampling_rate", 16000)
+    else:
+        raise TypeError(f"unrecognized audio field type: {type(audio_field)}")
+    if sr != 16000:
+        import torchaudio
+
+        wav_t = torch.from_numpy(np.asarray(wav, dtype=np.float32)).unsqueeze(0)
+        wav = torchaudio.functional.resample(wav_t, sr, 16000).squeeze(0).numpy()
+    return np.asarray(wav, dtype=np.float32)
 
 
 class HFAudioDataset(Dataset):
-    def __init__(self, hf_dataset, n_samples: int | None = None, clip_len: int = CLIP_LEN, seed: int = 0):
+    def __init__(self, dataset_id: str, hf_dataset, n_samples: int | None = None,
+                 clip_len: int = CLIP_LEN, seed: int = 0):
+        self.dataset_id = dataset_id
         self.ds = hf_dataset
         if n_samples is not None and n_samples < len(self.ds):
             rng = np.random.RandomState(seed)
             idx = rng.choice(len(self.ds), size=n_samples, replace=False)
             self.ds = self.ds.select(idx.tolist())
         self.clip_len = clip_len
-        self._audio_col = None
-        self._label_col = None
+        if dataset_id not in LABEL_CONFIG:
+            raise KeyError(f"no label config for {dataset_id}; add it to LABEL_CONFIG")
+        self.label_col, self.genuine_value = LABEL_CONFIG[dataset_id]
 
     def __len__(self):
         return len(self.ds)
@@ -61,18 +73,15 @@ class HFAudioDataset(Dataset):
 
     def __getitem__(self, i):
         ex = self.ds[i]
-        if self._audio_col is None:
-            self._audio_col = _find_audio_col(ex)
-            self._label_col = _find_label_col(ex)
-        audio_field = ex[self._audio_col]
-        wav = np.asarray(audio_field["array"] if isinstance(audio_field, dict) else audio_field, dtype=np.float32)
-        wav = self._pad_or_trim(wav)
-        label = _to_binary_label(ex[self._label_col], self._label_col)
+        wav = self._pad_or_trim(_decode_audio(ex["audio"]))
+        label = 1 if ex[self.label_col] == self.genuine_value else 0
         return torch.from_numpy(wav), torch.tensor(label, dtype=torch.long)
 
 
 def load_split(dataset_id: str, split: str = "train", n_samples: int | None = None):
     from datasets import load_dataset
 
-    ds = load_dataset(dataset_id, split=split)
-    return HFAudioDataset(ds, n_samples=n_samples)
+    # slice server-side so we don't pull entire multi-GB shards for a toy run
+    split_expr = f"{split}[:{n_samples}]" if n_samples else split
+    ds = load_dataset(dataset_id, split=split_expr)
+    return HFAudioDataset(dataset_id, ds, n_samples=None)
